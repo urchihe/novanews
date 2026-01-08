@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class SourceController extends Controller
 {
     /**
-     * Return all authors with id and name
+     * Return all sources with id and name
      */
     public function index(Request $request): JsonResponse
     {

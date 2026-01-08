@@ -11,6 +11,7 @@ composer install --no-interaction --prefer-dist --optimize-autoloader
 php artisan migrate --force || true
 php artisan optimize:clear || true
 php artisan optimize || true
+php artisan news:fetch
 
 php artisan horizon:terminate || true
 php artisan queue:restart || true

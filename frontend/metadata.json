@@ -1,6 +1,0 @@
-
-{
-  "name": "NovaNews Aggregator",
-  "description": "A sophisticated news aggregator platform featuring personalized feeds, multi-source filtering, and an AI-powered news generation engine to simulate live data scraping from global sources.",
-  "requestFramePermissions": []
-}
