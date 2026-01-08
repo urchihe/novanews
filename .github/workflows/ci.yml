@@ -59,37 +59,37 @@ jobs:
         run: |
           echo "Waiting for API to be ready..."
           retries=0
-          until docker compose exec -T nova-api php artisan route:list >/dev/null 2>&1 || [ $retries -ge 20 ]; do
+          until docker compose exec -T api php artisan route:list >/dev/null 2>&1 || [ $retries -ge 20 ]; do
             echo "API not ready yet. Waiting 5 seconds..."
             sleep 5
             retries=$((retries+1))
           done
           if [ $retries -ge 20 ]; then
             echo "API failed to start after 100 seconds"
-            docker compose logs --tail 50 nova-api
+            docker compose logs --tail 50 api
             exit 1
           fi
           echo "API is ready!"
 
       - name: Backend Composer lint
-        run: docker compose exec -T nova-api composer lint
+        run: docker compose exec -T api composer lint
 
       - name: Backend Run tests
-        run: docker compose exec -T nova-api php artisan test --no-interaction
+        run: docker compose exec -T api php artisan test --no-interaction
 
       - name: Frontend ESLint
-        run: docker compose exec -T novanews_frontend yarn run lint
+        run: docker compose exec -T frontend yarn run lint
 
       - name: Frontend Run tests
-        run: docker compose exec -T novanews_frontend yarn run test --watchAll=false
+        run: docker compose exec -T frontend yarn run test --watchAll=false
 
       - name: Log API & Frontend containers
         run: |
           for i in $(seq 1 4); do
             echo "==== API logs attempt #$i ===="
-            docker compose logs --tail 50 nova-api
+            docker compose logs --tail 50 api
             echo "==== Frontend logs attempt #$i ===="
-            docker compose logs --tail 50 novanews_frontend
+            docker compose logs --tail 50 frontend
             sleep 2
           done
 
