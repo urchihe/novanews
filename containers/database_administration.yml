@@ -1,0 +1,13 @@
+services:
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      UPLOAD_LIMIT: 400M
+      POST_MAX_SIZE: 400M
+      MEMORY_LIMIT: 512M
+    restart: always
+    ports:
+      - 8003:80

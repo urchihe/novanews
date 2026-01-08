@@ -1,0 +1,50 @@
+services:
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../frontend/Dockerfile
+      args:
+        MODE: ${MODE:-development}
+        RECAPTCHA_KEY: ${RECAPTCHA_KEY}
+        API_HOST: ${API_HOST}
+        ADMIN_API_HOST: ${ADMIN_API_HOST}
+      target: ${DOCKER_TARGET:-dev}
+    container_name: ${PROJECT}_frontend
+    working_dir: /usr/app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../frontend:/usr/app
+      - frontend_node_modules:/usr/app/node_modules
+      - frontend_yarn:/usr/app/.yarn
+    networks:
+      - traefik-network
+    environment:
+      - NODE_ENV=${MODE:-development}
+      - VITE_API_HOST=${APP_URL}
+      - VITE_ITSLOCAL=${VITE_ITSLOCAL}
+      - VITE_PORT=${VITE_PORT}
+
+    labels:
+      - traefik.enable=true
+
+      # HTTP
+      - traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.frontend.entrypoints=web
+      - traefik.http.routers.frontend.priority=10
+      - traefik.http.services.frontend.loadbalancer.server.port=5173
+      # HTTPS
+      # - traefik.http.routers.frontend-secure.rule=Host(`${DOMAIN}`)
+      # - traefik.http.routers.frontend-secure.entrypoints=websecure
+      # - traefik.http.routers.frontend-secure.tls=true
+      # - traefik.http.routers.frontend-secure.tls.certresolver=myresolver
+      # - traefik.http.routers.frontend-secure.priority=10
+
+volumes:
+  frontend_node_modules:
+  frontend_yarn:
+
+networks:
+  traefik-network:
+    external: true
+
