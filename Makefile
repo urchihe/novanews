@@ -19,6 +19,9 @@ COMPOSE_FILES := \
 # Path to the .env file
 ENV_FILE := --env-file .env
 
+# Declare phony targets (always run, never treated as files)
+.PHONY: up down clean logs build build-no-cache api frontend network
+
 # Create the global traefik network if it doesn't exist
 network:
 	@docker network inspect traefik-network >/dev/null 2>&1 || \
@@ -54,5 +57,5 @@ api:
 
 # Open shell in frontend container
 frontend:
-	docker compose $(ENV_FILE) $(COMPOSE_FILES) exec frontend bash
+	docker compose $(ENV_FILE) $(COMPOSE_FILES) exec frontend sh
 

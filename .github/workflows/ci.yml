@@ -32,14 +32,20 @@ jobs:
       - name: Start Docker containers
         run: make up
 
-      - name: Wait for API & frontend
-        run: sleep 20
+      - name: Wait for API to be ready
+        run: |
+          echo "Waiting for API..."
+          until docker compose exec -T api php artisan route:list >/dev/null 2>&1; do
+            echo "API not ready yet. Waiting 5 seconds..."
+            sleep 5
+          done
+          echo "API is ready!"
 
       - name: Backend Composer lint
         run: docker compose exec -T api composer lint
 
       - name: Backend Run tests
-        run: docker compose exec -T api php artisan test
+        run: docker compose exec -T api php artisan test --no-interaction
 
       - name: Frontend ESLint
         run: docker compose exec -T frontend yarn run lint
