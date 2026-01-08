@@ -53,6 +53,22 @@ jobs:
       - name: Frontend Run tests
         run: docker compose exec -T frontend yarn run test --watchAll=false
 
+      - name: Log API & Frontend (last 50 lines, repeated 4 times)
+        run: |
+          echo "Printing container logs (API)..."
+          for i in $(seq 1 4); do
+            echo "API logs attempt #$i"
+            docker compose logs --tail 50 api
+            sleep 2
+          done
+          
+          echo "Printing container logs (Frontend)..."
+          for i in $(seq 1 4); do
+            echo "Frontend logs attempt #$i"
+            docker compose logs --tail 50 frontend
+            sleep 2
+          done
+
       - name: Shutdown containers
         if: always()
         run: make down
