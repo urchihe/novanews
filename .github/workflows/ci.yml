@@ -12,7 +12,7 @@ jobs:
     env:
       COMPOSE_PROJECT_NAME: novanews
       COMPOSE_PATH_SEPARATOR: ";"
-      COMPOSE_FILE=containers/orchestrator.yml;containers/api.yml;containers/frontend.yml;containers/database.yml;containers/redis.yml
+      COMPOSE_FILE: containers/orchestrator.yml;containers/api.yml;containers/frontend.yml;containers/database.yml;containers/redis.yml
       APP_KEY: ''
       APP_ENV: testing
       DB_CONNECTION: mysql
