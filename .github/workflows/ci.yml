@@ -1,0 +1,88 @@
+name: CI - NovaNews
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT: novanews
+      COMPOSE_PROJECT_NAME: novanews
+      DOMAIN: novanews.localhost
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+     
+      # Build all Docker images
+      - name: Build Docker containers
+        run: |
+          docker compose \
+            -f containers/orchestrator.yml \
+            -f containers/api.yml \
+            -f containers/frontend.yml \
+            -f containers/database.yml \
+            -f containers/database_administration.yml \
+            -f containers/redis.yml \
+            build --pull
+      
+      # Start containers  
+      - name: Start Docker containers
+        run: |
+          docker compose \
+            -f containers/orchestrator.yml \
+            -f containers/api.yml \
+            -f containers/frontend.yml \
+            -f containers/database.yml \
+            -f containers/database_administration.yml \
+            -f containers/redis.yml \
+            up -d
+
+      
+      # Wait for services 
+      - name: Wait for API & frontend
+        run: sleep 20
+
+     
+      # Backend Lint & Test 
+      
+      - name: Backend: Composer lint
+        run: |
+          docker compose exec -T api composer lint
+
+      - name: Backend: Run tests
+        run: |
+          docker compose exec -T api php artisan test
+
+      # Frontend Lint & Test
+
+      - name: Frontend: ESLint
+        run: |
+          docker compose exec -T frontend yarn run lint
+
+      - name: Frontend: Run tests
+        run: |
+          docker compose exec -T frontend yarn run test --watchAll=false
+
+     
+      # Shutdown containers  
+     
+      - name: Shutdown containers
+        if: always()
+        run: |
+          docker compose \
+            -f containers/orchestrator.yml \
+            -f containers/api.yml \
+            -f containers/frontend.yml \
+            -f containers/database.yml \
+            -f containers/database_administration.yml \
+            -f containers/redis.yml \
+            down -v
