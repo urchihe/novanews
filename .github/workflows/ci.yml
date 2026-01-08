@@ -9,9 +9,32 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
+    env:
+      COMPOSE_PROJECT_NAME: novanews
+      COMPOSE_PATH_SEPARATOR: ";"
+      COMPOSE_FILE=containers/orchestrator.yml;containers/api.yml;containers/frontend.yml;containers/database.yml;containers/redis.yml
+      APP_KEY: ''
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: api
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      REDIS_HOST: redis
+      CACHE_DRIVER: redis
+      SESSION_DRIVER: redis
+      QUEUE_CONNECTION: redis
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
@@ -34,38 +57,39 @@ jobs:
 
       - name: Wait for API to be ready
         run: |
-          echo "Waiting for API..."
-          until docker compose exec -T api php artisan route:list >/dev/null 2>&1; do
+          echo "Waiting for API to be ready..."
+          retries=0
+          until docker compose exec -T nova-api php artisan route:list >/dev/null 2>&1 || [ $retries -ge 20 ]; do
             echo "API not ready yet. Waiting 5 seconds..."
             sleep 5
+            retries=$((retries+1))
           done
+          if [ $retries -ge 20 ]; then
+            echo "API failed to start after 100 seconds"
+            docker compose logs --tail 50 nova-api
+            exit 1
+          fi
           echo "API is ready!"
 
       - name: Backend Composer lint
-        run: docker compose exec -T api composer lint
+        run: docker compose exec -T nova-api composer lint
 
       - name: Backend Run tests
-        run: docker compose exec -T api php artisan test --no-interaction
+        run: docker compose exec -T nova-api php artisan test --no-interaction
 
       - name: Frontend ESLint
-        run: docker compose exec -T frontend yarn run lint
+        run: docker compose exec -T novanews_frontend yarn run lint
 
       - name: Frontend Run tests
-        run: docker compose exec -T frontend yarn run test --watchAll=false
+        run: docker compose exec -T novanews_frontend yarn run test --watchAll=false
 
-      - name: Log API & Frontend (last 50 lines, repeated 4 times)
+      - name: Log API & Frontend containers
         run: |
-          echo "Printing container logs (API)..."
           for i in $(seq 1 4); do
-            echo "API logs attempt #$i"
-            docker compose logs --tail 50 api
-            sleep 2
-          done
-          
-          echo "Printing container logs (Frontend)..."
-          for i in $(seq 1 4); do
-            echo "Frontend logs attempt #$i"
-            docker compose logs --tail 50 frontend
+            echo "==== API logs attempt #$i ===="
+            docker compose logs --tail 50 nova-api
+            echo "==== Frontend logs attempt #$i ===="
+            docker compose logs --tail 50 novanews_frontend
             sleep 2
           done
 
