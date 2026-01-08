@@ -21,7 +21,6 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
-     
       # Build all Docker images
       - name: Build Docker containers
         run: |
@@ -33,7 +32,7 @@ jobs:
             -f containers/database_administration.yml \
             -f containers/redis.yml \
             build --pull
-      
+
       # Start containers  
       - name: Start Docker containers
         run: |
@@ -46,14 +45,11 @@ jobs:
             -f containers/redis.yml \
             up -d
 
-      
       # Wait for services 
       - name: Wait for API & frontend
         run: sleep 20
 
-     
       # Backend Lint & Test 
-      
       - name: Backend: Composer lint
         run: |
           docker compose exec -T api composer lint
@@ -63,7 +59,6 @@ jobs:
           docker compose exec -T api php artisan test
 
       # Frontend Lint & Test
-
       - name: Frontend: ESLint
         run: |
           docker compose exec -T frontend yarn run lint
@@ -72,9 +67,7 @@ jobs:
         run: |
           docker compose exec -T frontend yarn run test --watchAll=false
 
-     
       # Shutdown containers  
-     
       - name: Shutdown containers
         if: always()
         run: |
