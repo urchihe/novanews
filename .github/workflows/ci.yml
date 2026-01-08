@@ -30,8 +30,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          docker-compose --version
+
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
+
+      - name: Prepare environment file
+        run: |
+          cp .env.example .env
+          if ! grep -q "^APP_KEY=" .env; then
+            php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).\"\n\";" >> .env
+          fi
+          if ! grep -q "^JWT_SECRET=" .env; then
+            echo "JWT_SECRET=$(openssl rand -hex 32)" >> .env
+          fi
 
       - name: Build Docker containers
         run: make build
@@ -39,10 +55,10 @@ jobs:
       - name: Start Docker containers
         run: make up
 
-      # Wait for Backend container to be ready
+      # Wait for Laravel container to be ready
       - name: Wait for app service to be ready
         run: |
-          echo "Waiting for api container to be ready..."
+          echo "Waiting for app container to be ready..."
           for i in {1..18}; do
             if docker-compose exec -T api php -v >/dev/null 2>&1; then
               echo "App container is ready."
@@ -56,15 +72,11 @@ jobs:
           docker-compose logs api
           exit 1
 
-      # Prepare Laravel environment and app key
-      - name: Prepare Backend environment
-        run: |
-          docker-compose exec -T api cp .env.example .env || echo "No .env.example found, skipping copy"
-          echo "APP_KEY=${APP_KEY}" | docker-compose exec -T api tee -a .env >/dev/null
-          docker-compose exec -T api php artisan key:generate --force
+      - name: Backend Composer lint
+        run: docker compose exec -T api composer lint
 
-      - name: Run PHP Formatting && PHPStan
-        run: docker-compose exec -T api composer lint
+      - name: Backend Run tests
+        run: docker compose exec -T api php artisan test --no-interaction
 
       - name: Frontend ESLint
         run: docker compose exec -T frontend yarn run lint
