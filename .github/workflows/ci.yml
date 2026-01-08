@@ -50,20 +50,20 @@ jobs:
         run: sleep 20
 
       # Backend Lint & Test 
-      - name: Backend: Composer lint
+      - name: Backend Composer lint
         run: |
           docker compose exec -T api composer lint
 
-      - name: Backend: Run tests
+      - name: Backend Run tests
         run: |
           docker compose exec -T api php artisan test
 
       # Frontend Lint & Test
-      - name: Frontend: ESLint
+      - name: Frontend ESLint
         run: |
           docker compose exec -T frontend yarn run lint
 
-      - name: Frontend: Run tests
+      - name: Frontend Run tests
         run: |
           docker compose exec -T frontend yarn run test --watchAll=false
 
