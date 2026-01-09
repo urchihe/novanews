@@ -31,25 +31,31 @@ jobs:
       - name: Start Docker containers
         run: make up
 
+      # Wait for Laravel API container to be ready
+      - name: Wait for API container to be ready
+        run: |
+          echo "Waiting for API container to be ready..."
+          for i in {1..30}; do
+            status=$(docker inspect -f '{{.State.Running}}' nova-api 2>/dev/null || echo "false")
+            if [ "$status" = "true" ]; then
+              # Test if PHP CLI is responsive inside container
+              if docker compose exec -T api php -v >/dev/null 2>&1; then
+                echo "API container is ready!"
+                exit 0
+              fi
+            fi
+            echo "API not ready yet ($i/30)..."
+            sleep 5
+          done
+          echo "API container failed to start after 150s"
+          docker compose ps
+          docker compose logs api
+          exit 1
+
+
       - name: Install API dependencies
         run: docker compose exec -T api composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      # Wait for Laravel API container to be ready
-      - name: Wait for API container
-        run: |
-          echo "Waiting for API container to be ready..."
-          for i in {1..18}; do
-            if docker compose exec -T api php artisan --version >/dev/null 2>&1; then
-              echo "API container is ready."
-              exit 0
-            fi
-            echo "API not ready yet... ($i/18)"
-            sleep 5
-          done
-          echo "API container failed to start after 90s"
-          docker compose ps
-          docker compose logs api --tail 50
-          exit 1
 
       - name: Backend Composer lint
         run: docker compose exec -T api composer lint
