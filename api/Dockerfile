@@ -44,8 +44,8 @@ RUN mkdir -p $COMPOSER_HOME && chmod -R 777 $COMPOSER_HOME
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache /var/run /var/log \
- && chmod -R 775 storage bootstrap/cache /var/run /var/log
+RUN chown -R www-data:www-data storage bootstrap/cache vendor /var/run /var/log \
+ && chmod -R 775 storage bootstrap/cache vendor /var/run /var/log
 
 # PHP & Supervisor configs
 # -----------------------------
