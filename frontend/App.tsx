@@ -194,25 +194,26 @@ const App: React.FC = () => {
         </h1>
       </header>
 
-      {articles.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map(article => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-          {loading && (
-            <div className="col-span-full text-center py-8">
-              <span className="text-gray-500">Loading more articles...</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        !loading && (
-          <div className="text-center py-20">
-            <h3 className="text-xl font-bold">No articles found</h3>
+     {!articlesLoading && !articles.length ? (
+      <div className="text-center py-20">
+        <span className="text-gray-500">No articles found</span>
+      </div>
+    ) : articles.length ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {articles.map(article => (
+          <ArticleCard key={article.id} article={article} />
+        ))}
+        {articlesLoading && (
+          <div className="col-span-full text-center py-8">
+            <span className="text-gray-500">Loading more articles...</span>
           </div>
-        )
-      )}
-
+        )}
+      </div>
+    ) : (
+      <div className="text-center py-20">
+        <h3 className="text-xl font-bold">Loading articles...</h3>
+      </div>
+    )}
       {showAuth && (
         <AuthModal
           form={form}
