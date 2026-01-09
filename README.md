@@ -28,7 +28,7 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
 
 1. **Clone the repository**
     ```bash
-    git clone https://github.com/yourusername/novanews.git
+    git clone git@github.com:urchihe/novanews.git
     cd novanews
     ```
 
