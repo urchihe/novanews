@@ -33,11 +33,18 @@ class GuardianService
         }
 
         try {
+            // Get latest stored article date
+            $latestDate = $this->articleRepo->latestDateForSource('The Guardian');
+            // fallback to yesterday if none
+            $fromDate = $latestDate ? $latestDate->toDateString() : now()->subDay()->toDateString();
+
             $response = Http::timeout(10)->get($apiUrl, [
                 'api-key' => $apiKey,
                 'show-fields' => 'body,headline,byline',
                 'show-blocks' => 'main',
                 'page-size' => 100,
+                'from-date' => $fromDate,
+                'order-by' => 'newest',
             ]);
 
             if ($response->failed()) {
@@ -49,58 +56,44 @@ class GuardianService
                 return;
             }
 
-            $articles = $response->json('response', []);
+            $articles = $response->json('response.results', []);
 
-            foreach ($articles['results'] as $item) {
+            foreach ($articles as $item) {
                 $fields = $item['fields'] ?? [];
-
                 $title = $fields['headline'] ?? $item['webTitle'] ?? 'Untitled';
-
-                $sourceName = $item['source'] ?? 'The Guardian';
+                $sourceName = 'The Guardian';
                 $categoryName = $item['sectionName'] ?? 'General';
                 $authorName = trim($fields['byline'] ?? 'Unknown');
 
-                // Create or update category
                 $category = Category::updateOrCreate(
                     ['name' => $categoryName],
                     ['slug' => Str::slug($categoryName)]
                 );
 
-                // Create or update author
                 $author = Author::updateOrCreate(
                     ['name' => $authorName],
                     ['slug' => Str::slug($authorName)]
                 );
 
-                // Create or update source
                 $source = Source::updateOrCreate(
                     ['name' => $sourceName],
                     ['slug' => Str::slug($sourceName)]
                 );
 
-                /**
-                 * Prevent duplicates
-                 */
+                // Prevent duplicates by Guardian ID or URL
                 if ($this->articleRepo->exists([
-                    'title' => $title,
+                    'url' => $item['webUrl'],
                     'source_id' => $source->id,
                 ])) {
                     continue;
                 }
 
-                /**
-                 * IMAGE EXTRACTION (Guardian blocks)
-                 */
                 $imageUrl = null;
-
                 if (! empty($item['blocks']['main']['elements'][0]['assets'])) {
                     $assets = $item['blocks']['main']['elements'][0]['assets'];
                     $imageUrl = end($assets)['file'] ?? null;
                 }
 
-                /**
-                 * CREATE ARTICLE
-                 */
                 $this->articleRepo->create([
                     'title' => $title,
                     'content' => $fields['body'] ?? null,
@@ -109,8 +102,7 @@ class GuardianService
                     'category_id' => $category->id,
                     'published_at' => $item['webPublicationDate'] ?? now(),
                     'url' => $item['webUrl'] ?? null,
-                    'urlToImage' => $imageUrl
-                        ?? 'https://picsum.photos/seed/guardian/800/450',
+                    'urlToImage' => $imageUrl ?? 'https://picsum.photos/seed/guardian/800/450',
                 ]);
             }
         } catch (\Throwable $e) {

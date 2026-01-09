@@ -33,12 +33,18 @@ class NewsAPIService
         }
 
         try {
+            // Get latest stored article date for NewsAPI
+            $latestDate = $this->articleRepo->latestDateForSource('NewsAPI');
+            $fromDate = $latestDate ? $latestDate->toDateString() : now()->subDay()->toDateString();
+
             $response = Http::timeout(10)->withHeaders([
                 'X-Api-Key' => $apiKey,
             ])->get($apiUrl, [
                 'q' => 'latest',
                 'language' => 'en',
                 'pageSize' => 100,
+                'from' => $fromDate,
+                'sortBy' => 'publishedAt',
             ]);
 
             if ($response->failed()) {
@@ -64,37 +70,33 @@ class NewsAPIService
                     continue;
                 }
 
-                $sourceName = $item['source']['name'] ? $item['source']['name'].'(NewsAPI)' : 'NewsAPI';
+                $sourceName = 'NewsAPI';
                 $categoryName = $item['category'] ?? 'General';
                 $authorName = $item['author'] ?? 'Unknown';
 
-                // Create or update category
                 $category = Category::updateOrCreate(
                     ['name' => $categoryName],
                     ['slug' => Str::slug($categoryName)]
                 );
 
-                // Create or update author
                 $author = Author::updateOrCreate(
                     ['name' => $authorName],
                     ['slug' => Str::slug($authorName)]
                 );
 
-                // Create or update source
                 $source = Source::updateOrCreate(
                     ['name' => $sourceName],
                     ['slug' => Str::slug($sourceName)]
                 );
 
-                // Skip if article already exists
+                // Prevent duplicates by URL instead of title
                 if ($this->articleRepo->exists([
-                    'title' => $title,
+                    'url' => $item['url'],
                     'source_id' => $source->id,
                 ])) {
                     continue;
                 }
 
-                // Save article
                 $this->articleRepo->create([
                     'title' => $title,
                     'content' => $item['content'] ?? null,
@@ -102,14 +104,13 @@ class NewsAPIService
                     'source_id' => $source->id,
                     'category_id' => $category->id,
                     'published_at' => $item['publishedAt'] ?? now(),
-                    'urlToImage' => $item['urlToImage'] ?? 'https://picsum.photos/seed/4/800/450',
+                    'urlToImage' => $item['urlToImage'] ?? 'https://picsum.photos/seed/newsapi/800/450',
                     'url' => $item['url'] ?? null,
                 ]);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('NewsAPIService: Exception during fetch.', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
         }
     }

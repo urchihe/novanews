@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('articles', function (Blueprint $table): void {
             $table->id();
             $table->string('title');
-            $table->text('content')->nullable();
+            $table->longText('content')->nullable();
             $table->foreignId('author_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('urlToImage')->nullable();
-            $table->string('url')->nullable();
+            $table->text('urlToImage')->nullable();
+            $table->text('url')->nullable();
             $table->foreignId('source_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamp('published_at')->nullable();

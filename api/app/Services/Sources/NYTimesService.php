@@ -31,15 +31,17 @@ class NYTimesService
 
             return;
         }
-        // Optional: limit & offset for pagination
-        $limit = 50;
-        $offset = 0;
 
         try {
+            // Get latest stored article date for NewsAPI
+            $latestDate = $this->articleRepo->latestDateForSource('NewsAPI');
+            $fromDate = $latestDate ? $latestDate->toDateString() : now()->subDay()->toDateString();
+
             $response = Http::timeout(10)->get($apiUrl, [
                 'api-key' => $apiKey,
-                'limit' => $limit,
-                'offset' => $offset,
+                'sort' => 'newest',
+                'begin_date' => $fromDate,
+                'page' => 0,
             ]);
 
             if ($response->failed()) {
@@ -92,7 +94,7 @@ class NYTimesService
                  * Prevent duplicates
                  */
                 if ($this->articleRepo->exists([
-                    'title' => $title,
+                    'url' => $item['url'] ?? $title,
                     'source_id' => $source->id,
                 ])) {
                     continue;
@@ -121,8 +123,8 @@ class NYTimesService
                     'source_id' => $source->id,
                     'author_id' => $author->id,
                     'category_id' => $category->id,
-                    'published_at' => $item['pub_date'] ?? now(),
-                    'url' => $item['web_url'] ?? null,
+                    'published_at' => $item['published_date'] ?? now(),
+                    'url' => $item['url'] ?? null,
                     'urlToImage' => $imageUrl
                         ?? 'https://picsum.photos/seed/nytimes/800/450',
                 ]);

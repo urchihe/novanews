@@ -6,6 +6,7 @@ namespace App\Contracts;
 
 use App\Models\Article;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 
 interface ArticleRepositoryInterface
 {
@@ -14,4 +15,6 @@ interface ArticleRepositoryInterface
     public function create(array $data): Article;
 
     public function exists(array $conditions): bool;
+
+    public function latestDateForSource(string $sourceName): ?Carbon;
 }

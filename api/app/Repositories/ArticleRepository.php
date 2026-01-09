@@ -6,7 +6,9 @@ namespace App\Repositories;
 
 use App\Contracts\ArticleRepositoryInterface;
 use App\Models\Article;
+use App\Models\Source;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 
 class ArticleRepository implements ArticleRepositoryInterface
 {
@@ -82,5 +84,17 @@ class ArticleRepository implements ArticleRepositoryInterface
     public function exists(array $conditions): bool
     {
         return Article::where($conditions)->exists();
+    }
+
+    public function latestDateForSource(string $sourceName): ?Carbon
+    {
+        $source = Source::where('name', $sourceName)->first();
+        if (! $source) {
+            return null;
+        }
+        $latest = Article::where('source_id', $source->id)
+            ->orderByDesc('published_at')->value('published_at');
+
+        return $latest ? Carbon::parse($latest) : null;
     }
 }
