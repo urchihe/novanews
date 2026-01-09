@@ -45,7 +45,7 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
     NYT_API_KEY=your_newyorktimes_key_here
     ```
    These keys are required for fetching articles from The Guardian, NewsAPI, and The New York Times.
-   
+
    ⚠️ Note: Articles are fetched on app launch and updated hourly, so it is important to keep these keys set in the environment.
 ---
 
@@ -83,10 +83,8 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
 ## 📝 Additional Notes
 
 - **API Scheduler & Tasks**  
-  NovaNews uses Laravel scheduler for recurring tasks like fetching news. In production, you should run:
-    ```bash
-    * * * * * docker exec nova-api php artisan schedule:run >> /dev/null 2>&1
-    ```
+  NovaNews uses the Laravel scheduler for recurring tasks like fetching news articles. The scheduler is managed via Supervisor and Horizon inside the API Docker container, so you do not need to manually run cron jobs. All scheduled tasks, queues, and jobs are handled automatically by Docker in both local and production environments.
+  
 - **Authentication**  
   The backend uses Laravel Sanctum for API authentication.
 - **Environment Variables**  
