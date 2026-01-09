@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-mkdir -p /var/run/supervisor /var/log
-chmod 0777 /var/run/supervisor /var/log
-
 cd /var/www/html/api || exit
 
 composer install --no-interaction --prefer-dist --optimize-autoloader

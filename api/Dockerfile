@@ -37,6 +37,13 @@ COPY supervisord.conf /etc/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN dos2unix /entrypoint.sh && chmod +x /entrypoint.sh
 
+# Create supervisor run dir as root
+RUN mkdir -p /var/run/supervisor /var/log \
+    && chown -R www-data:www-data /var/run/supervisor /var/log
+
+# Switch to non-root user only after setup
 USER www-data
+
+
 ENTRYPOINT ["/entrypoint.sh"]
 EXPOSE 9000
