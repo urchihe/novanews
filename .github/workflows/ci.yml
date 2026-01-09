@@ -9,23 +9,6 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
-    env:
-      COMPOSE_PROJECT_NAME: novanews
-      COMPOSE_PATH_SEPARATOR: ";"
-      COMPOSE_FILE: containers/orchestrator.yml;containers/api.yml;containers/frontend.yml;containers/database.yml;containers/redis.yml
-      APP_KEY: ''
-      APP_ENV: testing
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: api
-      DB_USERNAME: root
-      DB_PASSWORD: root
-      REDIS_HOST: redis
-      CACHE_DRIVER: redis
-      SESSION_DRIVER: redis
-      QUEUE_CONNECTION: redis
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,18 +19,11 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose --version
 
-      - name: Set up Docker
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Prepare environment file
-        run: |
-          cp .env.example .env
-          if ! grep -q "^APP_KEY=" .env; then
-            php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).\"\n\";" >> .env
-          fi
-          if ! grep -q "^JWT_SECRET=" .env; then
-            echo "JWT_SECRET=$(openssl rand -hex 32)" >> .env
-          fi
+      - name: Prepare environment
+        run: make env
 
       - name: Build Docker containers
         run: make build
@@ -55,21 +31,21 @@ jobs:
       - name: Start Docker containers
         run: make up
 
-      # Wait for Laravel container to be ready
-      - name: Wait for app service to be ready
+      # Wait for Laravel API container to be ready
+      - name: Wait for API container
         run: |
-          echo "Waiting for app container to be ready..."
+          echo "Waiting for API container to be ready..."
           for i in {1..18}; do
-            if docker-compose exec -T api php -v >/dev/null 2>&1; then
-              echo "App container is ready."
+            if docker compose exec -T api php artisan --version >/dev/null 2>&1; then
+              echo "API container is ready."
               exit 0
             fi
-            echo "App not ready yet... ($i/18)"
+            echo "API not ready yet... ($i/18)"
             sleep 5
           done
-          echo "App container failed to start after 90s"
-          docker-compose ps
-          docker-compose logs api
+          echo "API container failed to start after 90s"
+          docker compose ps
+          docker compose logs api --tail 50
           exit 1
 
       - name: Backend Composer lint
@@ -84,7 +60,7 @@ jobs:
       - name: Frontend Run tests
         run: docker compose exec -T frontend yarn run test --watchAll=false
 
-      - name: Log API & Frontend containers
+      - name: Log API & Frontend containers (last 50 lines, repeated 4 times)
         run: |
           for i in $(seq 1 4); do
             echo "==== API logs attempt #$i ===="
