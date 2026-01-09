@@ -31,6 +31,9 @@ jobs:
       - name: Start Docker containers
         run: make up
 
+      - name: Install API dependencies
+        run: docker compose exec -T api composer install --no-interaction --prefer-dist --optimize-autoloader
+
       # Wait for Laravel API container to be ready
       - name: Wait for API container
         run: |
