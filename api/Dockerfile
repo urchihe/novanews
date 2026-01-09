@@ -36,11 +36,14 @@ WORKDIR /var/www/html/api
 # Copy application
 COPY . .
 
+# Ensure Laravel runtime dirs exist 
+RUN mkdir -p storage/logs bootstrap/cache
+
 # Composer install as root 
 ENV COMPOSER_HOME=/var/www/html/api/.composer 
 RUN mkdir -p $COMPOSER_HOME && chmod -R 777 $COMPOSER_HOME \ 
 && composer install --no-interaction --prefer-dist --optimize-autoloader
- 
+
 # Permissions 
 RUN chown -R www-data:www-data storage bootstrap/cache /var/run /var/log /var/www/html/api/vendor \ 
 && chmod -R 775 storage bootstrap/cache /var/run /var/log /var/www/html/api/vendor

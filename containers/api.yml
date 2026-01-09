@@ -8,6 +8,8 @@ services:
       - ../api/.env:/var/www/html/api/.env
       - ../api:/var/www/html/api
       - /var/www/html/api/vendor
+      - /var/www/html/api/storage 
+      - /var/www/html/api/bootstrap/cache
     environment:
       MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DATABASE_NAME}
