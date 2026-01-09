@@ -36,16 +36,14 @@ WORKDIR /var/www/html/api
 # Copy application
 COPY . .
 
-# Set Composer home to writable dir for non-root user
-ENV COMPOSER_HOME=/var/www/html/api/.composer
-RUN mkdir -p $COMPOSER_HOME && chmod -R 777 $COMPOSER_HOME
-
-# Install PHP dependencies
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
-
-# Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache /var/run /var/log \
- && chmod -R 775 storage bootstrap/cache /var/run /var/log
+# Composer install as root 
+ENV COMPOSER_HOME=/var/www/html/api/.composer 
+RUN mkdir -p $COMPOSER_HOME && chmod -R 777 $COMPOSER_HOME \ 
+&& composer install --no-interaction --prefer-dist --optimize-autoloader
+ 
+# Permissions 
+RUN chown -R www-data:www-data storage bootstrap/cache /var/run /var/log /var/www/html/api/vendor \ 
+&& chmod -R 775 storage bootstrap/cache /var/run /var/log /var/www/html/api/vendor
 
 # PHP & Supervisor configs
 # -----------------------------
