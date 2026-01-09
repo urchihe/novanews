@@ -1,6 +1,6 @@
 # NovaNews 📰
 
-NovaNews is a full‑stack news aggregation platform built with **Laravel (backend)** and a modern frontend. It is containerized with Docker Compose for easy local development and production deployment. The backend runs behind **Nginx** and is orchestrated with **Traefik** for production‑ready serving.
+NovaNews is a full‑stack news aggregation platform built with **Laravel (backend)** and **REACT(TypeScript)** frontend. It is containerized with Docker Compose for easy local development and production deployment. The backend runs behind **Nginx** and is orchestrated with **Traefik** for production‑ready serving.
 
 ---
 
@@ -18,6 +18,7 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
 
 ## 📦 Prerequisites
 
+- [Make](https://www.gnu.org/software/make/?utm_source=copilot.com)
 - [Docker](https://docs.docker.com/get-docker/)  
 - [Docker Compose](https://docs.docker.com/compose/install/)  
 - Git
@@ -38,26 +39,30 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
     ```
 
 3. **Update .env with your API keys**  
-   Add your credentials for the news sources:
+   Add your credentials for the supported news sources in the root project’s .env file:
     ```bash
     GUARDIAN_API_KEY=your_guardian_key_here
     NEWS_API_KEY=your_newsapi_key_here
     NYT_API_KEY=your_newyorktimes_key_here
     ```
-   These keys are required for fetching articles from The Guardian, NewsAPI, and The New York Times.
+   These environment variables are required for fetching articles from The Guardian, NewsAPI, and The New York Times.
 
-   ⚠️ Note: Articles are fetched on app launch and updated hourly, so it is important to keep these keys set in the environment.
+    ⚠️ Important: Articles are fetched automatically on app launch and refreshed hourly. Make sure these keys are set correctly in your .env file to avoid missing or empty article feeds.
 ---
 
 ## 🐳 Running with Docker
 
 1. **Build and start containers**
-    ```bash
+```bash
     make build
     make up
-    ```
-
-2. **Access the services**
+  ```
+2. **How to make news fetch manual only**
+    To update manually run this:
+ ```bash
+    make news
+  ```
+3. **Access the services**
     - Frontend: [http://novanews.localhost](http://novanews.localhost)
     - Backend API (Laravel): [http://api.novanews.localhost](http://api.novanews.localhost)
     - Database Admin: [http://localhost:8080](http://localhost:8080)

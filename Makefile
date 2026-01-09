@@ -83,3 +83,8 @@ api:
 frontend:
 	docker compose $(ENV_FILE) $(COMPOSE_FILES) exec frontend sh
 
+# Open shell in api container
+news:
+	docker compose $(ENV_FILE) $(COMPOSE_FILES) exec api php artisan news:fetch
+
+
