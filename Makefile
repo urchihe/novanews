@@ -20,7 +20,31 @@ COMPOSE_FILES := \
 ENV_FILE := --env-file .env
 
 # Declare phony targets (always run, never treated as files)
-.PHONY: up down clean logs build build-no-cache api frontend network
+.PHONY: up down clean logs build build-no-cache api frontend network env
+
+env:
+	@echo "Preparing environment files..."
+	@if [ ! -f api/.env ]; then cp api/.env.example api/.env; fi
+	@if [ ! -f .env ]; then cp .env.example .env; fi
+
+	# Generate APP_KEY if missing
+	@APP_KEY=$$(php -r "echo 'base64:'.base64_encode(random_bytes(32));"); \
+	echo "Generated APP_KEY=$$APP_KEY"; \
+	\
+	awk -v key="APP_KEY=$$APP_KEY" \
+		'BEGIN{found=0} \
+		/^APP_KEY=/{print key; found=1; next} \
+		{print} \
+		END{if(!found) print key}' api/.env > api/.env.tmp && mv api/.env.tmp api/.env; \
+	\
+	awk -v key="APP_KEY=$$APP_KEY" \
+		'BEGIN{found=0} \
+		/^APP_KEY=/{print key; found=1; next} \
+		{print} \
+		END{if(!found) print key}' .env > .env.tmp && mv .env.tmp .env
+
+	@echo "APP_KEY synced to api/.env and .env"
+
 
 # Create the global traefik network if it doesn't exist
 network:

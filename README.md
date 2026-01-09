@@ -32,20 +32,21 @@ NovaNews is a full‑stack news aggregation platform built with **Laravel (backe
     cd novanews
     ```
 
-2. **Copy environment file**
+2. **Create env environment file**
     ```bash
-    cp .env.example .env
+    make env
     ```
 
 3. **Update .env with your API keys**  
    Add your credentials for the news sources:
     ```bash
     GUARDIAN_API_KEY=your_guardian_key_here
-    NEWSAPI_KEY=your_newsapi_key_here
+    NEWS_API_KEY=your_newsapi_key_here
     NYT_API_KEY=your_newyorktimes_key_here
     ```
    These keys are required for fetching articles from The Guardian, NewsAPI, and The New York Times.
-
+   
+   ⚠️ Note: Articles are fetched on app launch and updated hourly, so it is important to keep these keys set in the environment.
 ---
 
 ## 🐳 Running with Docker
