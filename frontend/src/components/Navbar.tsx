@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Input } from "antd";
 import { User } from "@/types";
 import { UserPreferences } from "@/types";
 
@@ -59,23 +60,21 @@ const Navbar: React.FC<NavbarProps> = ({
 
           {/* Search */}
           <div className="flex-1 max-w-md mx-4 sm:mx-8">
-            <form className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search world news..."
+              allowClear
+              prefix={
                 <i className="fa-solid fa-magnifying-glass text-gray-400"></i>
-              </div>
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search world news..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-full bg-gray-50 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              />
-            </form>
+              }
+              className="rounded-full"
+              style={{ minHeight: "50px" }}
+            />
           </div>
 
           {/* User Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Preferences always visible */}
             <button
               onClick={onOpenPrefs}
               className={`relative p-2 rounded-full transition-colors
@@ -92,8 +91,6 @@ const Navbar: React.FC<NavbarProps> = ({
               }
             >
               <i className="fa-solid fa-sliders"></i>
-
-              {/* Active indicator dot */}
               {hasActivePrefs && (
                 <span className="absolute top-1 right-1 w-2 h-2 bg-blue-600 rounded-full ring-2 ring-white"></span>
               )}
@@ -101,7 +98,6 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="h-8 w-px bg-gray-200 mx-1 hidden sm:block"></div>
 
             {user?.id ? (
-              // Logged-in
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
                   {user?.name?.charAt(0)?.toUpperCase()}
@@ -114,7 +110,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 </button>
               </div>
             ) : (
-              // Logged-out
               <button
                 onClick={onOpenAuth}
                 className="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-gray-800 transition-colors shadow-lg shadow-gray-200"
